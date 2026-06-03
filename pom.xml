@@ -6,7 +6,7 @@
 
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-spring-boot-parent</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <packaging>pom</packaging>
     <name>masking-spring-boot-parent</name>
     <description>Parent build for masking Spring Boot starter modules</description>
