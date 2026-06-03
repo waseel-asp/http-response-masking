@@ -10,7 +10,7 @@ This is the recommended dependency for end users.
 <dependency>
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-spring-boot-starter</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 

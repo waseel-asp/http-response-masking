@@ -16,7 +16,7 @@ Use this module directly if you need masking logic without Spring Boot auto-conf
 <dependency>
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-core</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 

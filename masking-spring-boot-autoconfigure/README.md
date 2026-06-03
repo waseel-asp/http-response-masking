@@ -51,6 +51,6 @@ Most applications should use `masking-spring-boot-starter` instead.
 <dependency>
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-spring-boot-autoconfigure</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```

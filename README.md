@@ -10,7 +10,7 @@ Masking is opt-in per field using `@Mask`, and is applied only during REST respo
 <dependency>
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-spring-boot-starter</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
@@ -29,7 +29,7 @@ import com.waseel.http_response_masking.core.models.MaskType;
 public record CustomerResponse(
         String name,
         @Mask(type = MaskType.CUSTOM, keepLast = 4) String phone,
-        @Mask(type = MaskType.CUSTOM, keepFirst = 2) String email
+        @Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 4) String email //te********.com
 ) {}
 ```
 
