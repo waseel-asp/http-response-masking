@@ -26,6 +26,20 @@ import com.waseel.http_response_masking.core.models.MaskOptions;
 import com.waseel.http_response_masking.core.models.MaskType;
 
 StringMasker masker = new StringMasker();
-String masked = masker.mask("1234567890", new MaskOptions(MaskType.KEEP_LAST, '*', 4));
+// keep last 4 characters
+String masked = masker.mask("1234567890", new MaskOptions(MaskType.CUSTOM, '*', 0, 4));
 // masked = "******7890"
+
+Annotation usage with the new attributes:
+
+```java
+import com.waseel.http_response_masking.core.annotations.Mask;
+import com.waseel.http_response_masking.core.models.MaskType;
+
+public record CustomerResponse(
+    String name,
+    @Mask(type = MaskType.CUSTOM, keepLast = 4) String phone,
+    @Mask(type = MaskType.CUSTOM, keepFirst = 2) String email
+) {}
+```
 ```

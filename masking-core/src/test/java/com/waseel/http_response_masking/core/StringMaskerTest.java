@@ -20,7 +20,7 @@ class StringMaskerTest {
 
 	@Test
 	void maskWithFullStrategyMasksAllCharacters() {
-		MaskOptions options = new MaskOptions(MaskType.FULL, '*', 4);
+        MaskOptions options = new MaskOptions(MaskType.FULL, '*', 0, 0);
 
 		String masked = masker.mask("abcdef", options);
 
@@ -29,7 +29,7 @@ class StringMaskerTest {
 
 	@Test
 	void maskWithKeepLastStrategyKeepsConfiguredSuffix() {
-		MaskOptions options = new MaskOptions(MaskType.KEEP_LAST, '#', 4);
+        MaskOptions options = new MaskOptions(MaskType.CUSTOM, '#', 0, 4);
 
 		String masked = masker.mask("1234567890", options);
 
@@ -38,7 +38,7 @@ class StringMaskerTest {
 
 	@Test
 	void maskWithKeepFirstStrategyKeepsConfiguredPrefix() {
-		MaskOptions options = new MaskOptions(MaskType.KEEP_FIRST, 'X', 3);
+        MaskOptions options = new MaskOptions(MaskType.CUSTOM, 'X', 3, 0);
 
 		String masked = masker.mask("ABCDEFGHIJ", options);
 
@@ -47,7 +47,7 @@ class StringMaskerTest {
 
 	@Test
 	void maskReturnsRawWhenInputIsEmpty() {
-		MaskOptions options = new MaskOptions(MaskType.FULL, '*', 4);
+        MaskOptions options = new MaskOptions(MaskType.FULL, '*', 0, 0);
 
 		String masked = masker.mask("", options);
 
@@ -56,8 +56,8 @@ class StringMaskerTest {
 
 	@Test
 	void maskReturnsRawWhenInputShorterThanKeptCharsForPartialStrategies() {
-		MaskOptions keepLast = new MaskOptions(MaskType.KEEP_LAST, '*', 6);
-		MaskOptions keepFirst = new MaskOptions(MaskType.KEEP_FIRST, '*', 6);
+        MaskOptions keepLast = new MaskOptions(MaskType.CUSTOM, '*', 0, 6);
+        MaskOptions keepFirst = new MaskOptions(MaskType.CUSTOM, '*', 6, 0);
 
 		assertEquals("abc", masker.mask("abc", keepLast));
 		assertEquals("abc", masker.mask("abc", keepFirst));
@@ -65,8 +65,8 @@ class StringMaskerTest {
 
 	@Test
 	void maskAllowsLengthEqualToKeptCharsForPartialStrategies() {
-		MaskOptions keepLast = new MaskOptions(MaskType.KEEP_LAST, '*', 4);
-		MaskOptions keepFirst = new MaskOptions(MaskType.KEEP_FIRST, '*', 4);
+        MaskOptions keepLast = new MaskOptions(MaskType.CUSTOM, '*', 0, 4);
+        MaskOptions keepFirst = new MaskOptions(MaskType.CUSTOM, '*', 4, 0);
 
 		assertEquals("1234", masker.mask("1234", keepLast));
 		assertEquals("1234", masker.mask("1234", keepFirst));
@@ -74,7 +74,7 @@ class StringMaskerTest {
 
 	@Test
 	void maskThrowsWhenRawIsNull() {
-		MaskOptions options = new MaskOptions(MaskType.FULL, '*', 4);
+        MaskOptions options = new MaskOptions(MaskType.FULL, '*', 0, 0);
 
 		assertThrows(NullPointerException.class, () -> masker.mask(null, options));
 	}
@@ -86,21 +86,21 @@ class StringMaskerTest {
 
 	@Test
 	void maskThrowsWhenMaskTypeIsNull() {
-		MaskOptions options = new MaskOptions(null, '*', 4);
+        MaskOptions options = new MaskOptions(null, '*', 0, 0);
 
 		assertThrows(NullPointerException.class, () -> masker.mask("abc", options));
 	}
 
 	@Test
 	void maskThrowsWhenKeptCharsCountIsNegative() {
-		MaskOptions options = new MaskOptions(MaskType.FULL, '*', -1);
+        MaskOptions options = new MaskOptions(MaskType.FULL, '*', -1, 0);
 
 		assertThrows(IllegalArgumentException.class, () -> masker.mask("abc", options));
 	}
 
 	@Test
 	void maskReturnsRawWhenRawIsShorterThanKeptCharsCount() {
-		MaskOptions options = new MaskOptions(MaskType.KEEP_LAST, '*', 5);
+        MaskOptions options = new MaskOptions(MaskType.CUSTOM, '*', 0, 5);
 
 		String masked = masker.mask("123", options);
 
@@ -121,7 +121,8 @@ class StringMaskerTest {
 
 		assertEquals("John Doe", masked.name);
 		assertEquals("******7890", masked.phoneNumber);
-		assertEquals("j***************", masked.email);
+        // keepFirst=1 (explicit) and keepLast defaults to 4 in the annotation
+        assertEquals("j***********.com", masked.email);
 		assertEquals(32, masked.age);
 		assertNull(masked.nickname);
 	}
@@ -157,11 +158,11 @@ class StringMaskerTest {
 
 		private String name;
 
-		@Mask(type = MaskType.KEEP_LAST, keptCharsCount = 4)
-		private String phoneNumber;
+        @Mask(type = MaskType.CUSTOM, keepLast = 4)
+        private String phoneNumber;
 
-		@Mask(type = MaskType.KEEP_FIRST, keptCharsCount = 1)
-		private String email;
+        @Mask(type = MaskType.CUSTOM, keepFirst = 1)
+        private String email;
 
 		private int age;
 

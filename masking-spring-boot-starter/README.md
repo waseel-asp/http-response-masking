@@ -20,6 +20,19 @@ This is the recommended dependency for end users.
 - Auto-registers masking integration for Spring MVC response bodies.
 - Uses `@Mask` from `masking-core` for field-level opt-in masking.
 
+Example annotation usage:
+
+```java
+import com.waseel.http_response_masking.core.annotations.Mask;
+import com.waseel.http_response_masking.core.models.MaskType;
+
+public record CustomerResponse(
+    String name,
+    @Mask(type = MaskType.CUSTOM, keepLast = 4) String phone,
+    @Mask(type = MaskType.CUSTOM, keepFirst = 2) String email
+) {}
+```
+
 ## Configuration
 
 ```properties

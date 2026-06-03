@@ -2,8 +2,12 @@ package com.waseel.http_response_masking.core;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.waseel.http_response_masking.core.annotations.Mask;
 import com.waseel.http_response_masking.core.models.MaskOptions;
@@ -21,27 +25,46 @@ public class StringMasker {
 	 * @return masked string based on the selected masking strategy
 	 * @throws NullPointerException     if {@code raw}, {@code options}, or
 	 *                                  {@code options.type()} is {@code null}
-	 * @throws IllegalArgumentException if {@code options.keptCharsCount()} is
-	 *                                  negative
-	 */
+     * @throws IllegalArgumentException if {@code options.keepFirst()} or
+     *                                  {@code options.keepLast()} is negative
+     */
 	public String mask(String raw, MaskOptions options) {
 		Objects.requireNonNull(raw, "raw must not be null");
 		validateMaskingOptions(options);
-		if (raw.length() == 0 || (options.type() != MaskType.FULL && raw.length() < options.keptCharsCount())) {
+		if (raw.length() == 0
+				|| (options.type() != MaskType.FULL && raw.length() < (options.keepFirst() + options.keepLast()))) {
 			return raw;
 		}
 		return switch (options.type()) {
 			case MaskType.FULL -> String
 					.valueOf(options.maskingChar())
 					.repeat(raw.length());
-			case MaskType.KEEP_LAST -> String
-					.valueOf(options.maskingChar())
-					.repeat(raw.length() - options.keptCharsCount())
-					.concat(raw.substring(raw.length() - options.keptCharsCount()));
-			case MaskType.KEEP_FIRST -> raw.substring(0, options.keptCharsCount())
-					.concat(String
-							.valueOf(options.maskingChar())
-							.repeat(raw.length() - options.keptCharsCount()));
+			case MaskType.CUSTOM -> {
+				int middle = raw.length() - (options.keepFirst() + options.keepLast());
+				yield raw.substring(0, options.keepFirst())
+						.concat(String.valueOf(options.maskingChar()).repeat(middle))
+						.concat(raw.substring(raw.length() - options.keepLast()));
+			}
+			case MaskType.PER_WORD -> {
+				Matcher m = Pattern.compile("\\S+").matcher(raw);
+				StringBuilder sb = new StringBuilder();
+				int last = 0;
+				while (m.find()) {
+					sb.append(raw, last, m.start());
+					String token = m.group();
+					if (token.length() < options.keepFirst() + options.keepLast()) {
+						sb.append(token);
+					} else {
+						int middle = token.length() - (options.keepFirst() + options.keepLast());
+						sb.append(token, 0, options.keepFirst())
+								.append(String.valueOf(options.maskingChar()).repeat(middle))
+								.append(token, token.length() - options.keepLast(), token.length());
+					}
+					last = m.end();
+				}
+				sb.append(raw, last, raw.length());
+				yield sb.toString();
+			}
 			default -> raw;
 		};
 	}
@@ -77,8 +100,11 @@ public class StringMasker {
 	private void validateMaskingOptions(MaskOptions options) {
 		Objects.requireNonNull(options, "options must not be null");
 		Objects.requireNonNull(options.type(), "masking type must not be null");
-		if (options.keptCharsCount() < 0) {
-			throw new IllegalArgumentException("keptCharsCount must not be negative");
+		if (options.keepFirst() < 0) {
+			throw new IllegalArgumentException("keepFirst must not be negative");
+		}
+		if (options.keepLast() < 0) {
+			throw new IllegalArgumentException("keepLast must not be negative");
 		}
 	}
 }

@@ -8,12 +8,14 @@ public enum MaskType {
 	 * Mask all characters in the target value.
 	 */
 	FULL,
+
 	/**
-	 * Keep the last characters visible and mask the preceding ones.
+	 * Mask based on the value of {@code keepFirst} and {@code keepLast}
 	 */
-	KEEP_LAST,
+	CUSTOM,
+
 	/**
-	 * Keep the first characters visible and mask the remaining ones.
+	 * Mask per word based on the value of {@code keepFirst} and {@code keepLast}
 	 */
-	KEEP_FIRST
+	PER_WORD
 }

@@ -33,7 +33,12 @@ public @interface Mask {
 	public char maskingChar() default '*';
 
 	/**
-	 * Number of characters to keep visible for partial masking strategies.
+	 * Number of characters to keep from the start of the string
 	 */
-	public int keptCharsCount() default 4;
+	public int keepFirst() default 0;
+	
+	/**
+	 * Number of characters to keep from the end of the string
+	 */
+	public int keepLast() default 4;
 }

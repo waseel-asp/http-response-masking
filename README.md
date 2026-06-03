@@ -28,8 +28,8 @@ import com.waseel.http_response_masking.core.models.MaskType;
 
 public record CustomerResponse(
         String name,
-        @Mask(type = MaskType.KEEP_LAST, keptCharsCount = 4) String phone,
-        @Mask(type = MaskType.KEEP_FIRST, keptCharsCount = 2) String email
+        @Mask(type = MaskType.CUSTOM, keepLast = 4) String phone,
+        @Mask(type = MaskType.CUSTOM, keepFirst = 2) String email
 ) {}
 ```
 

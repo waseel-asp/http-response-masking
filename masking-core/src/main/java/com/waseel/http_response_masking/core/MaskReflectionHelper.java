@@ -36,7 +36,7 @@ public final class MaskReflectionHelper {
 	}
 
 	public static MaskOptions toMaskOptions(Mask mask) {
-		return new MaskOptions(mask.type(), mask.maskingChar(), mask.keptCharsCount());
+		return new MaskOptions(mask.type(), mask.maskingChar(), mask.keepFirst(), mask.keepLast());
 	}
 
 	public static <T extends Serializable> T deepCopy(T source) {
