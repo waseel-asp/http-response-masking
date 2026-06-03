@@ -8,3 +8,8 @@ target/
 .DS_Store
 
 /.mvn/wrapper/maven-wrapper.jar
+
+# IDE files (Eclipse)
+.project
+.classpath
+.settings/
