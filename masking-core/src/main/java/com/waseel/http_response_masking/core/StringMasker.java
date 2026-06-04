@@ -35,38 +35,36 @@ public class StringMasker {
 				|| (options.type() != MaskType.FULL && raw.length() < (options.keepFirst() + options.keepLast()))) {
 			return raw;
 		}
-		return switch (options.type()) {
-			case MaskType.FULL -> String
-					.valueOf(options.maskingChar())
-					.repeat(raw.length());
-			case MaskType.CUSTOM -> {
-				int middle = raw.length() - (options.keepFirst() + options.keepLast());
-				yield raw.substring(0, options.keepFirst())
-						.concat(String.valueOf(options.maskingChar()).repeat(middle))
-						.concat(raw.substring(raw.length() - options.keepLast()));
-			}
-			case MaskType.PER_WORD -> {
-				Matcher m = Pattern.compile("\\S+").matcher(raw);
-				StringBuilder sb = new StringBuilder();
-				int last = 0;
-				while (m.find()) {
-					sb.append(raw, last, m.start());
-					String token = m.group();
-					if (token.length() < options.keepFirst() + options.keepLast()) {
-						sb.append(token);
-					} else {
-						int middle = token.length() - (options.keepFirst() + options.keepLast());
-						sb.append(token, 0, options.keepFirst())
-								.append(String.valueOf(options.maskingChar()).repeat(middle))
-								.append(token, token.length() - options.keepLast(), token.length());
-					}
-					last = m.end();
-				}
-				sb.append(raw, last, raw.length());
-				yield sb.toString();
-			}
-			default -> raw;
-		};
+        return switch (options.type()) {
+            case FULL -> String.valueOf(options.maskingChar()).repeat(raw.length());
+            case CUSTOM -> {
+                int middle = raw.length() - (options.keepFirst() + options.keepLast());
+                yield raw.substring(0, options.keepFirst())
+                        .concat(String.valueOf(options.maskingChar()).repeat(middle))
+                        .concat(raw.substring(raw.length() - options.keepLast()));
+            }
+            case PER_WORD -> {
+                Matcher m = Pattern.compile("\\S+").matcher(raw);
+                StringBuilder sb = new StringBuilder();
+                int last = 0;
+                while (m.find()) {
+                    sb.append(raw, last, m.start());
+                    String token = m.group();
+                    if (token.length() < options.keepFirst() + options.keepLast()) {
+                        sb.append(token);
+                    } else {
+                        int middle = token.length() - (options.keepFirst() + options.keepLast());
+                        sb.append(token, 0, options.keepFirst())
+                                .append(String.valueOf(options.maskingChar()).repeat(middle))
+                                .append(token, token.length() - options.keepLast(), token.length());
+                    }
+                    last = m.end();
+                }
+                sb.append(raw, last, raw.length());
+                yield sb.toString();
+            }
+            default -> raw;
+        };
 	}
 
 	/**
