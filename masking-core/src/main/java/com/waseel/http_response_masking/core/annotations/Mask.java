@@ -40,5 +40,5 @@ public @interface Mask {
 	/**
 	 * Number of characters to keep from the end of the string
 	 */
-	public int keepLast() default 4;
+	public int keepLast() default 0;
 }

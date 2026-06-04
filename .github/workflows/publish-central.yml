@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '17'
           cache: maven
           server-id: central
           server-username: MAVEN_CENTRAL_USERNAME
@@ -32,7 +32,7 @@ jobs:
       - name: Publish artifacts
         # Deploy only the module artifacts and their required reactor modules.
         # This prevents publishing the parent POM as an artifact.
-        run: mvn -B -ntp -pl masking-core,masking-spring-boot-autoconfigure,masking-spring-boot-starter -am clean deploy -Dgpg.pinentry.mode=loopback
+        run: mvn -B -ntp clean deploy -Dgpg.pinentry.mode=loopback
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
