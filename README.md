@@ -10,7 +10,7 @@ Masking is opt-in per field using `@Mask`, and is applied only during REST respo
 <dependency>
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-spring-boot-starter</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 
@@ -28,11 +28,19 @@ import com.waseel.http_response_masking.core.models.MaskType;
 
 public record CustomerResponse(
         String name,
-        @Mask(type = MaskType.CUSTOM, keepLast = 4) String phone,
-        @Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 4) String email //te********.com
-) {}
+        // National ID: keep first 1 and last 3 -> 1******890
+        @Mask(type = MaskType.CUSTOM, keepFirst = 1, keepLast = 3) String nationalId,
+        // Member ID: keep last 4 -> ****5678
+        @Mask(type = MaskType.CUSTOM, keepLast = 4) String memberId,
+        // Full name: keep first letter of each name -> A**** M******
+        @Mask(type = MaskType.PER_WORD, keepFirst = 1) String fullName,
+        // Phone: keep first 2 and last 3 -> 05*****890
+        @Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 3) String phone,
+        @Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 4) String email, // te********.com
+        // Secret: mask everything
+        @Mask(type = MaskType.FULL) String secret
+        ) {}
 ```
-
 When serialized as an HTTP response, annotated string fields are masked.
 
 ## Configuration
@@ -64,6 +72,8 @@ waseel:
 - Only `String` fields are masked.
 - Masking runs in Spring MVC response flow (`ResponseBodyAdvice`).
 - Internal object usage outside MVC response writing is not masked by default.
+ - Collections (`List`, `Set`, etc.), `Map`, `Optional`, arrays and common container types are traversed and masked.
+ - Spring Data `Page`/`Slice`/`Streamable` instances are also supported: the masker will invoke their `map(Function)` reflectively so the runtime type is preserved (no compile-time Spring Data dependency required).
 
 ## Modules
 

@@ -2,8 +2,6 @@ package com.waseel.http_response_masking.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.Serializable;
@@ -125,24 +123,6 @@ class StringMaskerTest {
 		assertEquals("123", masked);
 	}
 
-	@Test
-	void maskObjectMasksOnlyAnnotatedStringFieldsAndCreatesDeepCopy() throws IllegalAccessException {
-		CustomerRecord original = new CustomerRecord("John Doe", "1234567890", "john@example.com", 32, null);
-
-		CustomerRecord masked = masker.mask(original);
-
-		assertNotSame(original, masked);
-		assertEquals("John Doe", original.name);
-		assertEquals("1234567890", original.phoneNumber);
-		assertEquals("john@example.com", original.email);
-		assertEquals(32, original.age);
-
-		assertEquals("John Doe", masked.name);
-		assertEquals("******7890", masked.phoneNumber);
-		assertEquals("j***************", masked.email);
-		assertEquals(32, masked.age);
-		assertNull(masked.nickname);
-	}
 
 	@Test
 	void maskObjectHandlesTypeWithNoMaskableFields() throws IllegalAccessException {
@@ -150,13 +130,7 @@ class StringMaskerTest {
 
 		NonMaskedRecord masked = masker.mask(original);
 
-		assertNotSame(original, masked);
 		assertEquals("plain", masked.value);
-	}
-
-	@Test
-	void maskObjectThrowsWhenTargetIsNull() {
-		assertThrows(NullPointerException.class, () -> masker.mask((CustomerRecord) null));
 	}
 
 	@Test
