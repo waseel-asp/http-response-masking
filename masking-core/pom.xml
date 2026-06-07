@@ -15,4 +15,11 @@
     <name>masking-core</name>
     <description>Core annotation and masking strategy APIs</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
