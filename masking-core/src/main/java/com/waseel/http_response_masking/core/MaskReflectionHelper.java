@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,6 +46,10 @@ public final class MaskReflectionHelper {
 
 	public static void writeFieldValue(Object target, Field field, Object value) throws IllegalAccessException {
 		field.setAccessible(true);
+		int mods = field.getModifiers();
+		if (Modifier.isFinal(mods) || field.getType().isEnum()) {
+			return;
+		}
 		field.set(target, value);
 	}
 
