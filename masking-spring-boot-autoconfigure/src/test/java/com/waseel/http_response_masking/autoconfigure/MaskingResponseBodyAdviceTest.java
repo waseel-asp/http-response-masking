@@ -3,6 +3,9 @@ package com.waseel.http_response_masking.autoconfigure;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.springframework.core.MethodParameter;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 
@@ -47,5 +50,28 @@ class MaskingResponseBodyAdviceTest {
         String secret;
 
         TestBody(String secret) { this.secret = secret; }
+    }
+
+    // Helper classes for supports(...) tests
+    public static class MethodAnnotatedController {
+        @com.waseel.http_response_masking.autoconfigure.annotations.Masked
+        public ResponseEntity<TestBody> masked() { return null; }
+    }
+
+    @com.waseel.http_response_masking.autoconfigure.annotations.Masked
+    public static class ClassAnnotatedController {
+        public ResponseEntity<TestBody> notAnnotatedMethod() { return null; }
+    }
+
+    @Test
+    void supportsDetectsMethodLevelAnnotation() throws NoSuchMethodException {
+        MethodParameter mp = new MethodParameter(MethodAnnotatedController.class.getMethod("masked"), -1);
+        assertTrue(advice.supports(mp, null));
+    }
+
+    @Test
+    void supportsDetectsClassLevelAnnotation() throws NoSuchMethodException {
+        MethodParameter mp = new MethodParameter(ClassAnnotatedController.class.getMethod("notAnnotatedMethod"), -1);
+        assertTrue(advice.supports(mp, null));
     }
 }

@@ -19,6 +19,12 @@ Notes
 
 Fields are annotated with `@Mask` from `masking-core` to opt-in masking.
 
+Additionally, this module exposes a `@Masked` annotation in the
+`com.waseel.http_response_masking.autoconfigure.annotations` package. Apply
+`@Masked` to a controller method or controller class to opt-in at the endpoint
+level; framework components will detect that annotation and apply masking to
+responses from the annotated handler(s).
+
 Example annotation usage:
 
 ```java
@@ -30,41 +36,33 @@ public record CustomerResponse(
     @Mask(type = MaskType.CUSTOM, keepLast = 4) String phone,
     @Mask(type = MaskType.CUSTOM, keepFirst = 2) String email
 ) {}
-```
 
-Common masking examples
-
-```java
-// National ID -> show 1 first and 3 last: "1******890"
-@Mask(type = MaskType.CUSTOM, keepFirst = 1, keepLast = 3)
-
-// Member ID -> show last 4: "****5678"
-@Mask(type = MaskType.CUSTOM, keepLast = 4)
-
-// Full name -> show first letter of each word: "A**** M******"
-@Mask(type = MaskType.PER_WORD, keepFirst = 1)
-
-// Phone -> show first 2 and last 3: "05*****890"
-@Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 3)
-```
-
-Programmatic masking using `StringMasker` uses the new MaskOptions record:
+Example controller using the above response type and opting-in via
+`@Masked`:
 
 ```java
-import com.waseel.http_response_masking.core.StringMasker;
-import com.waseel.http_response_masking.core.models.MaskOptions;
-import com.waseel.http_response_masking.core.models.MaskType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.waseel.http_response_masking.autoconfigure.annotations.Masked;
 
-StringMasker masker = new StringMasker();
-// keep last 4 characters
-String masked = masker.mask("1234567890", new MaskOptions(MaskType.CUSTOM, '*', 0, 4));
+@RestController
+@RequestMapping("/api/customers")
+public class CustomerController {
+
+    @Masked
+    @GetMapping("/{id}")
+    public ResponseEntity<CustomerResponse> getCustomer(@PathVariable String id) {
+        // example payload; in real code build from service/repository
+        CustomerResponse resp = new CustomerResponse("Alice", "0123456789", "alice@example.com");
+        return ResponseEntity.ok(resp);
+    }
+}
 ```
 
-## Intended Audience
-
-Use this module directly only if you want fine-grained dependency control.
-
-Most applications should use `masking-spring-boot-starter` instead.
+```
 
 ## Maven
 
@@ -72,6 +70,6 @@ Most applications should use `masking-spring-boot-starter` instead.
 <dependency>
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-spring-boot-autoconfigure</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 </dependency>
 ```

@@ -10,18 +10,9 @@ This is the recommended dependency for end users.
 <dependency>
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-spring-boot-starter</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 </dependency>
 ```
-
-## How It Works
-
-- Brings `masking-spring-boot-autoconfigure` transitively.
-- Auto-registers masking integration for Spring MVC response bodies.
-- Uses `@Mask` from `masking-core` for field-level opt-in masking.
-
-- The masking engine traverses common container types (collections, maps, optionals, arrays) and will recurse into contained elements.
-- If Spring Data `Page`/`Slice`/`Streamable` types are present at runtime they will be mapped reflectively so the original runtime type is preserved.
 
 Example annotation usage:
 
@@ -36,22 +27,6 @@ public record CustomerResponse(
 ) {}
 ```
 
-Quick examples
-
-```java
-// National ID: keep first 1 and last 3 -> "1******890"
-@Mask(type = MaskType.CUSTOM, keepFirst = 1, keepLast = 3)
-
-// Member ID: keep last 4 -> "****5678"
-@Mask(type = MaskType.CUSTOM, keepLast = 4)
-
-// Full name: per-word keepFirst 1 -> "A**** M******"
-@Mask(type = MaskType.PER_WORD, keepFirst = 1)
-
-// Phone: keep first 2 and last 3 -> "05*****890"
-@Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 3)
-```
-
 ## Configuration
 
 ```properties
@@ -64,4 +39,48 @@ waseel:
   http-response-masking:
     enabled: true
     fail-fast: true
+```
+
+## Examples
+
+Programmatic (manual) masking
+
+If you want to mask objects outside of the MVC flow you can use the core
+masking engine directly. The `StringMasker` will traverse the object graph and
+apply field-level `@Mask` annotations.
+
+```java
+import com.waseel.http_response_masking.core.StringMasker;
+
+StringMasker masker = new StringMasker();
+CustomerResponse original = new CustomerResponse("Alice", "0123456789", "alice@example.com");
+CustomerResponse masked = (CustomerResponse) masker.mask(original);
+// masked.phone and masked.email will have masking applied according to @Mask
+```
+
+Automatic masking via controller response
+
+When using Spring MVC, responses from controller handlers can be masked
+automatically by the starter's auto-configuration. Annotate the handler method
+or controller class with `@Masked` to enable masking for that endpoint.
+
+```java
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.waseel.http_response_masking.autoconfigure.annotations.Masked;
+
+@RestController
+@RequestMapping("/api/customers")
+public class CustomerController {
+
+    @Masked
+    @GetMapping("/{id}")
+    public ResponseEntity<CustomerResponse> getCustomer(@PathVariable String id) {
+        CustomerResponse resp = new CustomerResponse("Alice", "0123456789", "alice@example.com");
+        return ResponseEntity.ok(resp);
+    }
+}
 ```

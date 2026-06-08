@@ -4,13 +4,19 @@
 
 Masking is opt-in per field using `@Mask`, and is applied only during REST response writing.
 
+You can also opt-in at the endpoint level by annotating a controller method or
+controller class with `@Masked` (from the autoconfigure module). This will
+cause responses produced by that handler (or all handlers in the annotated
+controller) to be considered for masking in addition to the field-level
+`@Mask` annotations.
+
 ## Maven
 
 ```xml
 <dependency>
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-spring-boot-starter</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
 </dependency>
 ```
 
@@ -42,6 +48,40 @@ public record CustomerResponse(
         ) {}
 ```
 When serialized as an HTTP response, annotated string fields are masked.
+
+Controller example (automatic masking)
+
+```java
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.waseel.http_response_masking.autoconfigure.annotations.Masked;
+
+@RestController
+@RequestMapping("/api/customers")
+public class CustomerController {
+
+    @Masked
+    @GetMapping("/{id}")
+    public ResponseEntity<CustomerResponse> getCustomer(@PathVariable String id) {
+        CustomerResponse resp = new CustomerResponse("Alice", "0123456789", "alice@example.com");
+        return ResponseEntity.ok(resp);
+    }
+}
+```
+
+Programmatic example (manual masking)
+
+```java
+import com.waseel.http_response_masking.core.StringMasker;
+
+StringMasker masker = new StringMasker();
+CustomerResponse original = new CustomerResponse("Alice", "0123456789", "alice@example.com");
+CustomerResponse masked = (CustomerResponse) masker.mask(original);
+// masked.phone and masked.email will have masking applied according to @Mask
+```
 
 ## Configuration
 
