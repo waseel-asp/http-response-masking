@@ -20,11 +20,23 @@ Example annotation usage:
 import com.waseel.http_response_masking.core.annotations.Mask;
 import com.waseel.http_response_masking.core.models.MaskType;
 
-public record CustomerResponse(
-    String name,
-    @Mask(type = MaskType.CUSTOM, keepLast = 4) String phone,
-    @Mask(type = MaskType.CUSTOM, keepFirst = 2) String email
-) {}
+public class CustomerResponse {
+    private String name;
+
+    @Mask(type = MaskType.CUSTOM, keepLast = 4)
+    private String phone;
+
+    @Mask(type = MaskType.CUSTOM, keepFirst = 2)
+    private String email;
+
+    public CustomerResponse(String name, String phone, String email) {
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+    }
+
+    // getters/setters omitted for brevity
+}
 ```
 
 ## Configuration

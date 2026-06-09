@@ -41,11 +41,23 @@ Annotation usage with the new attributes:
 import com.waseel.http_response_masking.core.annotations.Mask;
 import com.waseel.http_response_masking.core.models.MaskType;
 
-public record CustomerResponse(
-    String name,
-    @Mask(type = MaskType.CUSTOM, keepLast = 4) String phone,
-    @Mask(type = MaskType.CUSTOM, keepFirst = 2) String email
-) {}
+public class CustomerResponse {
+    private String name;
+
+    @Mask(type = MaskType.CUSTOM, keepLast = 4)
+    private String phone;
+
+    @Mask(type = MaskType.CUSTOM, keepFirst = 2)
+    private String email;
+
+    public CustomerResponse(String name, String phone, String email) {
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+    }
+
+    // getters/setters omitted for brevity
+}
 ```
 
 Common example rules
@@ -57,11 +69,16 @@ Below are concise examples (annotation and programmatic) that show how to expres
 Annotation:
 
 ```java
-public record NationalIdResponse(
+public class NationalIdResponse {
     @Mask(type = MaskType.CUSTOM, keepFirst = 1, keepLast = 3)
-    String nationalId
-) {}
-// Example: raw "1234567890" -> masked "1******890"
+    private String nationalId;
+
+    public NationalIdResponse(String nationalId) {
+        this.nationalId = nationalId;
+    }
+
+    // Example: raw "1234567890" -> masked "1******890"
+}
 ```
 
 Programmatic:
@@ -77,11 +94,16 @@ String masked = masker.mask("1234567890", new com.waseel.http_response_masking.c
 Annotation:
 
 ```java
-public record MemberResponse(
+public class MemberResponse {
     @Mask(type = MaskType.CUSTOM, keepLast = 4)
-    String memberId
-) {}
-// raw "ABCD5678" -> masked "****5678"
+    private String memberId;
+
+    public MemberResponse(String memberId) {
+        this.memberId = memberId;
+    }
+
+    // raw "ABCD5678" -> masked "****5678"
+}
 ```
 
 Programmatic:
@@ -96,11 +118,16 @@ String masked = masker.mask("ABCD5678", new com.waseel.http_response_masking.cor
 Annotation:
 
 ```java
-public record NameResponse(
+public class NameResponse {
     @Mask(type = MaskType.PER_WORD, keepFirst = 1)
-    String fullName
-) {}
-// raw "Ahmed Mohamed" -> masked "A**** M******"
+    private String fullName;
+
+    public NameResponse(String fullName) {
+        this.fullName = fullName;
+    }
+
+    // raw "Ahmed Mohamed" -> masked "A**** M******"
+}
 ```
 
 Programmatic:
@@ -115,11 +142,16 @@ String masked = masker.mask("Ahmed Mohamed", new com.waseel.http_response_maskin
 Annotation:
 
 ```java
-public record PhoneResponse(
+public class PhoneResponse {
     @Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 3)
-    String phone
-) {}
-// raw "0512345890" -> masked "05*****890"
+    private String phone;
+
+    public PhoneResponse(String phone) {
+        this.phone = phone;
+    }
+
+    // raw "0512345890" -> masked "05*****890"
+}
 ```
 
 Programmatic:
@@ -134,11 +166,16 @@ String masked = masker.mask("0512345890", new com.waseel.http_response_masking.c
 Annotation:
 
 ```java
-public record SecretResponse(
+public class SecretResponse {
     @Mask(type = MaskType.FULL)
-    String secret
-) {}
-// raw "password" -> masked "********"
+    private String secret;
+
+    public SecretResponse(String secret) {
+        this.secret = secret;
+    }
+
+    // raw "password" -> masked "********"
+}
 ```
 
 Programmatic:

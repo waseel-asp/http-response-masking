@@ -47,7 +47,7 @@ public final class MaskReflectionHelper {
 	public static void writeFieldValue(Object target, Field field, Object value) throws IllegalAccessException {
 		field.setAccessible(true);
 		int mods = field.getModifiers();
-		if (Modifier.isFinal(mods) || field.getType().isEnum()) {
+		if (target.getClass().isRecord() || Modifier.isFinal(mods) || field.getType().isEnum()) {
 			return;
 		}
 		field.set(target, value);

@@ -32,20 +32,45 @@ package com.example.api;
 import com.waseel.http_response_masking.core.annotations.Mask;
 import com.waseel.http_response_masking.core.models.MaskType;
 
-public record CustomerResponse(
-        String name,
-        // National ID: keep first 1 and last 3 -> 1******890
-        @Mask(type = MaskType.CUSTOM, keepFirst = 1, keepLast = 3) String nationalId,
-        // Member ID: keep last 4 -> ****5678
-        @Mask(type = MaskType.CUSTOM, keepLast = 4) String memberId,
-        // Full name: keep first letter of each name -> A**** M******
-        @Mask(type = MaskType.PER_WORD, keepFirst = 1) String fullName,
-        // Phone: keep first 2 and last 3 -> 05*****890
-        @Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 3) String phone,
-        @Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 4) String email, // te********.com
-        // Secret: mask everything
-        @Mask(type = MaskType.FULL) String secret
-        ) {}
+public class CustomerResponse {
+    private String name;
+
+    // National ID: keep first 1 and last 3 -> 1******890
+    @Mask(type = MaskType.CUSTOM, keepFirst = 1, keepLast = 3)
+    private String nationalId;
+
+    // Member ID: keep last 4 -> ****5678
+    @Mask(type = MaskType.CUSTOM, keepLast = 4)
+    private String memberId;
+
+    // Full name: keep first letter of each name -> A**** M******
+    @Mask(type = MaskType.PER_WORD, keepFirst = 1)
+    private String fullName;
+
+    // Phone: keep first 2 and last 3 -> 05*****890
+    @Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 3)
+    private String phone;
+
+    @Mask(type = MaskType.CUSTOM, keepFirst = 2, keepLast = 4)
+    private String email; // te********.com
+
+    // Secret: mask everything
+    @Mask(type = MaskType.FULL)
+    private String secret;
+
+    public CustomerResponse(String name, String nationalId, String memberId, String fullName,
+            String phone, String email, String secret) {
+        this.name = name;
+        this.nationalId = nationalId;
+        this.memberId = memberId;
+        this.fullName = fullName;
+        this.phone = phone;
+        this.email = email;
+        this.secret = secret;
+    }
+
+    // getters/setters omitted for brevity
+}
 ```
 When serialized as an HTTP response, annotated string fields are masked.
 

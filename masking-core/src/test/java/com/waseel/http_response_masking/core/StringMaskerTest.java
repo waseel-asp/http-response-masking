@@ -123,7 +123,6 @@ class StringMaskerTest {
 		assertEquals("123", masked);
 	}
 
-
 	@Test
 	void maskObjectHandlesTypeWithNoMaskableFields() throws IllegalAccessException {
 		NonMaskedRecord original = new NonMaskedRecord("plain");
@@ -142,6 +141,18 @@ class StringMaskerTest {
 		assertNotNull(masked);
 		assertEquals("", masked.phoneNumber);
 		assertEquals("", masked.email);
+	}
+
+	@Test
+	void maskMutableFieldsInsideImmutableObject() throws IllegalAccessException {
+		ActualRecord record = new ActualRecord("test",
+				new CustomerRecord("Name", "123456789", "mail@mail.tld", 20, "nick"));
+
+		ActualRecord masked = masker.mask(record);
+
+		assertNotNull(masked);
+		assertEquals("*****6789", masked.customer().phoneNumber);
+		assertEquals("m************", masked.customer().email);
 	}
 
 	private static class CustomerRecord implements Serializable {
@@ -177,5 +188,8 @@ class StringMaskerTest {
 		private NonMaskedRecord(String value) {
 			this.value = value;
 		}
+	}
+
+	private static record ActualRecord(String string, CustomerRecord customer) {
 	}
 }
