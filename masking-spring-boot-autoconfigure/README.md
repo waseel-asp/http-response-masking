@@ -82,6 +82,6 @@ public class CustomerController {
 <dependency>
     <groupId>com.waseel.http-response-masking</groupId>
     <artifactId>masking-spring-boot-autoconfigure</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 </dependency>
 ```

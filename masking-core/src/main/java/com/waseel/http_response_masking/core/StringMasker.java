@@ -15,9 +15,6 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.function.Function;
 
 import com.waseel.http_response_masking.core.annotations.Mask;
 import com.waseel.http_response_masking.core.models.MaskOptions;
@@ -98,15 +95,15 @@ public class StringMasker {
 		if (target == null || !visited.add(target)) {
 			return target;
 		}
-        if (target instanceof Collection<?> collection) {
-            @SuppressWarnings("unchecked")
-            T res = (T) maskCollection(collection, null, visited);
-            return res;
-        } else if (target instanceof Map<?, ?> map) {
-            @SuppressWarnings("unchecked")
-            T res = (T) maskMap(map, null, visited);
-            return res;
-        } else if (target instanceof Optional<?> optional) {
+		if (target instanceof Collection<?> collection) {
+			@SuppressWarnings("unchecked")
+			T res = (T) maskCollection(collection, null, visited);
+			return res;
+		} else if (target instanceof Map<?, ?> map) {
+			@SuppressWarnings("unchecked")
+			T res = (T) maskMap(map, null, visited);
+			return res;
+		} else if (target instanceof Optional<?> optional) {
 			@SuppressWarnings("unchecked")
 			T res = (T) maskOptional(optional, null, visited);
 			return res;
@@ -114,58 +111,30 @@ public class StringMasker {
 			@SuppressWarnings("unchecked")
 			T res = (T) maskArray(arr, null, visited);
 			return res;
-        } else if (implementsInterfaceNamed(target.getClass(), "org.springframework.data.domain.Page")
-                || implementsInterfaceNamed(target.getClass(), "org.springframework.data.domain.Slice")
-                || implementsInterfaceNamed(target.getClass(), "org.springframework.data.util.Streamable")) {
-            @SuppressWarnings("unchecked")
-            T res = (T) maskPageLike(target, null, visited);
-            return res;
-        } else {
+		} else {
 			for (Class<?> c = target.getClass(); c != null; c = c.getSuperclass()) {
 				List<Field> fields = Arrays.asList(c.getDeclaredFields());
 				for (Field field : fields) {
-					if (field.getType() == String.class && field.isAnnotationPresent(Mask.class)) {
-						MaskOptions options = MaskReflectionHelper.toMaskOptions(field.getAnnotation(Mask.class));
-						String rawValue = (String) MaskReflectionHelper.readFieldValue(target, field);
-						if (rawValue != null) {
+					var fieldValue = MaskReflectionHelper.readFieldValue(target, field);
+					if (fieldValue != null) {
+						if (fieldValue instanceof String rawValue && field.isAnnotationPresent(Mask.class)) {
+							MaskOptions options = MaskReflectionHelper.toMaskOptions(field.getAnnotation(Mask.class));
 							MaskReflectionHelper.writeFieldValue(target, field, this.mask(rawValue, options));
-						}
-					} else if (MaskReflectionHelper.isCustomClass(field.getType())) {
-						MaskReflectionHelper.writeFieldValue(target, field,
-								this.mask(MaskReflectionHelper.readFieldValue(target, field), visited));
-					} else if (Collection.class.isAssignableFrom(field.getType())) {
-						var collectionField = MaskReflectionHelper.readFieldValue(target, field);
-						if (collectionField instanceof Collection collection) {
+						} else if (MaskReflectionHelper.isCustomClass(fieldValue.getClass())) {
+							MaskReflectionHelper.writeFieldValue(target, field,
+									this.mask(MaskReflectionHelper.readFieldValue(target, field), visited));
+						} else if (fieldValue instanceof Collection<?> collection) {
 							MaskReflectionHelper.writeFieldValue(target, field,
 									maskCollection(collection, field, visited));
-						}
-					} else if (Map.class.isAssignableFrom(field.getType())) {
-						var mapField = MaskReflectionHelper.readFieldValue(target, field);
-						if (mapField instanceof Map<?, ?> map) {
+						} else if (fieldValue instanceof Map<?, ?> map) {
 							MaskReflectionHelper.writeFieldValue(target, field, this.maskMap(map, field, visited));
-						}
-	                    } else if (Optional.class.isAssignableFrom(field.getType())) {
-                        var optionalField = MaskReflectionHelper.readFieldValue(target, field);
-                        if (optionalField instanceof Optional<?> optional) {
-                            MaskReflectionHelper.writeFieldValue(target, field,
-                                    maskOptional(optional, field, visited));
-                        }
-
-	                    } else if (field.getType().isArray()) {
-                        var arrayField = MaskReflectionHelper.readFieldValue(target, field);
-                        if (arrayField instanceof Object[] arr) {
-                            MaskReflectionHelper.writeFieldValue(target, field, maskArray(arr, field, visited));
-	                    }
-
-					else if (implementsInterfaceNamed(field.getType(), "org.springframework.data.domain.Page")
-							|| implementsInterfaceNamed(field.getType(), "org.springframework.data.domain.Slice")
-							|| implementsInterfaceNamed(field.getType(), "org.springframework.data.util.Streamable")) {
-						var pageField = MaskReflectionHelper.readFieldValue(target, field);
-						if (pageField != null) {
-							MaskReflectionHelper.writeFieldValue(target, field, maskPageLike(pageField, field, visited));
+						} else if (fieldValue instanceof Optional<?> optional) {
+							MaskReflectionHelper.writeFieldValue(target, field,
+									maskOptional(optional, field, visited));
+						} else if (fieldValue instanceof Object[] arr) {
+							MaskReflectionHelper.writeFieldValue(target, field, maskArray(arr, field, visited));
 						}
 					}
-                    }
 				}
 			}
 		}
@@ -264,77 +233,6 @@ public class StringMasker {
 			}
 		}
 		return newArray;
-	}
-
-	/**
-	 * Mask objects that follow the Spring Page/Slice/Streamable contract without
-	 * depending on Spring at compile time. We look up a "map(Function)" method
-	 * reflectively and invoke it with a masking function that mirrors
-	 * maskCollection logic.
-	 */
-	private Object maskPageLike(Object pageLike, Field field, Set<Object> visited) throws IllegalAccessException {
-		if (pageLike == null) {
-			return null;
-		}
-		Method mapMethod = findMethodInHierarchy(pageLike.getClass(), "map", Function.class);
-		if (mapMethod == null) {
-			// fallback: if no map method, return original
-			return pageLike;
-		}
-		Function<Object, Object> fn = el -> {
-			try {
-				if (el == null) return null;
-				if (el instanceof String && field != null && field.isAnnotationPresent(Mask.class)) {
-					MaskOptions options = MaskReflectionHelper.toMaskOptions(field.getAnnotation(Mask.class));
-					return mask((String) el, options);
-				} else if (MaskReflectionHelper.isMaskAbleClass(el.getClass())) {
-					return mask(el, visited);
-				}
-				return el;
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			}
-		};
-		try {
-			return mapMethod.invoke(pageLike, fn);
-		} catch (IllegalAccessException e) {
-			throw e;
-		} catch (InvocationTargetException e) {
-			throw new RuntimeException(e.getCause() == null ? e : e.getCause());
-		}
-	}
-
-	private static boolean implementsInterfaceNamed(Class<?> c, String interfaceName) {
-		if (c == null) return false;
-		for (Class<?> i : c.getInterfaces()) {
-			if (i.getName().equals(interfaceName) || implementsInterfaceNamed(i, interfaceName)) return true;
-		}
-		Class<?> sc = c.getSuperclass();
-		if (sc != null) return implementsInterfaceNamed(sc, interfaceName);
-		return false;
-	}
-
-	private static Method findMethodInHierarchy(Class<?> c, String name, Class<?>... params) {
-		for (Class<?> cur = c; cur != null; cur = cur.getSuperclass()) {
-			try {
-				Method m = cur.getDeclaredMethod(name, params);
-				m.setAccessible(true);
-				return m;
-			} catch (NoSuchMethodException e) {
-				// continue
-			}
-			// also check interfaces
-			for (Class<?> iface : cur.getInterfaces()) {
-				try {
-					Method m = iface.getMethod(name, params);
-					m.setAccessible(true);
-					return m;
-				} catch (NoSuchMethodException ex) {
-					// continue
-				}
-			}
-		}
-		return null;
 	}
 
 	private void validateMaskingOptions(MaskOptions options) {

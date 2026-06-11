@@ -155,6 +155,19 @@ class StringMaskerTest {
 		assertEquals("m************", masked.customer().email);
 	}
 
+	@Test
+	void maskObjectInsideGenericWrapper() throws IllegalAccessException {
+		CustomerRecord customer = new CustomerRecord("Name", "123456789", "mail@mail.tld", 20, "nick");
+		GenericWrapper<CustomerRecord> wrapper = new GenericWrapper<>(customer);
+
+		GenericWrapper<CustomerRecord> masked = masker.mask(wrapper);
+
+		assertNotNull(masked);
+		assertNotNull(masked.data);
+		assertEquals("*****6789", masked.data.phoneNumber);
+		assertEquals("m************", masked.data.email);
+	}
+
 	private static class CustomerRecord implements Serializable {
 		private static final long serialVersionUID = 1L;
 
@@ -192,4 +205,14 @@ class StringMaskerTest {
 
 	private static record ActualRecord(String string, CustomerRecord customer) {
 	}
+
+	private static class GenericWrapper<T> implements Serializable {
+		private static final long serialVersionUID = 1L;
+		private T data;
+
+		private GenericWrapper(T data) {
+			this.data = data;
+		}
+	}
+
 }
