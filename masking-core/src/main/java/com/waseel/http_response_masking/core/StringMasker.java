@@ -130,42 +130,38 @@ public class StringMasker {
 						if (rawValue != null) {
 							MaskReflectionHelper.writeFieldValue(target, field, this.mask(rawValue, options));
 						}
-					} else if (MaskReflectionHelper.isCustomClass(field.getType())) {
-						MaskReflectionHelper.writeFieldValue(target, field,
-								this.mask(MaskReflectionHelper.readFieldValue(target, field), visited));
-					} else if (Collection.class.isAssignableFrom(field.getType())) {
-						var collectionField = MaskReflectionHelper.readFieldValue(target, field);
-						if (collectionField instanceof Collection collection) {
-							MaskReflectionHelper.writeFieldValue(target, field,
-									maskCollection(collection, field, visited));
-						}
-					} else if (Map.class.isAssignableFrom(field.getType())) {
-						var mapField = MaskReflectionHelper.readFieldValue(target, field);
-						if (mapField instanceof Map<?, ?> map) {
-							MaskReflectionHelper.writeFieldValue(target, field, this.maskMap(map, field, visited));
-						}
-	                    } else if (Optional.class.isAssignableFrom(field.getType())) {
-                        var optionalField = MaskReflectionHelper.readFieldValue(target, field);
-                        if (optionalField instanceof Optional<?> optional) {
-                            MaskReflectionHelper.writeFieldValue(target, field,
-                                    maskOptional(optional, field, visited));
-                        }
-
-	                    } else if (field.getType().isArray()) {
-                        var arrayField = MaskReflectionHelper.readFieldValue(target, field);
-                        if (arrayField instanceof Object[] arr) {
-                            MaskReflectionHelper.writeFieldValue(target, field, maskArray(arr, field, visited));
-	                    }
-
-					else if (implementsInterfaceNamed(field.getType(), "org.springframework.data.domain.Page")
-							|| implementsInterfaceNamed(field.getType(), "org.springframework.data.domain.Slice")
-							|| implementsInterfaceNamed(field.getType(), "org.springframework.data.util.Streamable")) {
-						var pageField = MaskReflectionHelper.readFieldValue(target, field);
-						if (pageField != null) {
-							MaskReflectionHelper.writeFieldValue(target, field, maskPageLike(pageField, field, visited));
+					} else {
+						Object val = MaskReflectionHelper.readFieldValue(target, field);
+						if (val != null) {
+							Class<?> valClass = val.getClass();
+							if (MaskReflectionHelper.isCustomClass(valClass)) {
+								MaskReflectionHelper.writeFieldValue(target, field,
+										this.mask(val, visited));
+							} else if (Collection.class.isAssignableFrom(valClass)) {
+								if (val instanceof Collection<?> collection) {
+									MaskReflectionHelper.writeFieldValue(target, field,
+											maskCollection(collection, field, visited));
+								}
+							} else if (Map.class.isAssignableFrom(valClass)) {
+								if (val instanceof Map<?, ?> map) {
+									MaskReflectionHelper.writeFieldValue(target, field, this.maskMap(map, field, visited));
+								}
+							} else if (Optional.class.isAssignableFrom(valClass)) {
+								if (val instanceof Optional<?> optional) {
+									MaskReflectionHelper.writeFieldValue(target, field,
+											maskOptional(optional, field, visited));
+								}
+							} else if (valClass.isArray()) {
+								if (val instanceof Object[] arr) {
+									MaskReflectionHelper.writeFieldValue(target, field, maskArray(arr, field, visited));
+								}
+							} else if (implementsInterfaceNamed(valClass, "org.springframework.data.domain.Page")
+									|| implementsInterfaceNamed(valClass, "org.springframework.data.domain.Slice")
+									|| implementsInterfaceNamed(valClass, "org.springframework.data.util.Streamable")) {
+								MaskReflectionHelper.writeFieldValue(target, field, maskPageLike(val, field, visited));
+							}
 						}
 					}
-                    }
 				}
 			}
 		}
